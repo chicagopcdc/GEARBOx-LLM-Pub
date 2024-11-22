@@ -60,14 +60,16 @@ class Yes_no(Enum):
   NO = "No"
 
 class test(BaseModel):
-  diag_cong_bmf_fact: str = Field(..., description="The fact that indicates whether the eligibility criteria mentions a diagnosis of any known congenital bone marrow failure syndrome (e.g. Fanconi anemia, Kostmann syndrome, Shwachman syndrome). Note: just 'bone marrow' does not count.")
-  diag_cong_bmf: Optional[Yes_no] = Field(
-    None, 
-    description='Does the eligibility criteria mention a diagnosis of any known congenital bone marrow failure syndrome (e.g. Fanconi anemia, Kostmann syndrome, Shwachman syndrome)?')
-  diag_malabsoption_fact: str = Field(..., description='The fact that indicates whether the eligibility criteria mentions a diagnosis of malabsorption syndrome')
-  diag_malabsoption: Optional[Yes_no] = Field(
-    None, 
-    description='Does the eligibility criteria mention a diagnosis of malabsorption syndrome?')
+  age_min: Optional[Yes_no] = Field(...,description="Do the eligibility criteria mention the minimum age? ")
+  
+  # diag_cong_bmf_fact: str = Field(..., description="The fact that indicates whether the eligibility criteria mentions a diagnosis of any known congenital bone marrow failure syndrome (e.g. Fanconi anemia, Kostmann syndrome, Shwachman syndrome). Note: just 'bone marrow' does not count.")
+  # diag_cong_bmf: Optional[Yes_no] = Field(
+  #   None, 
+  #   description='Does the eligibility criteria mention a diagnosis of any known congenital bone marrow failure syndrome (e.g. Fanconi anemia, Kostmann syndrome, Shwachman syndrome)?')
+  # diag_malabsoption_fact: str = Field(..., description='The fact that indicates whether the eligibility criteria mentions a diagnosis of malabsorption syndrome')
+  # diag_malabsoption: Optional[Yes_no] = Field(
+  #   None, 
+  #   description='Does the eligibility criteria mention a diagnosis of malabsorption syndrome?')
 
 class Demographic(BaseModel):
   age_min: Optional[int] = Field(
@@ -499,3 +501,24 @@ class Diagnosis(BaseModel):
         ]
       }
   ) 
+
+
+
+  
+# class Disease(BaseModel):
+#     # list dieases properties
+#     name: str
+#     defination: str
+#     severity: str
+#     inclusion: bool
+#     ...
+#     @gpt_function
+#     def from_criteria(criteria) -> "Disease":
+#         """Extract disease properties from the criteria."""
+
+# # expected output
+# disease = Disease.from_criteria("Refractory leukemia, defined as persistent leukemia after at least two courses of induction chemotherapy")
+# # Disease(name='Refractory leukemia', 
+# #     defination='persistent leukemia after at least two courses of induction chemotherapy', 
+# #     severity=None,
+# #     inclusion=Yes)
