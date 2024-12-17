@@ -59,18 +59,21 @@ class Yes_no(Enum):
   YES = "Yes"
   NO = "No"
 
-class test(BaseModel):
-  age_min: Optional[Yes_no] = Field(...,description="Do the eligibility criteria mention the minimum age? ")
-  
-  # diag_cong_bmf_fact: str = Field(..., description="The fact that indicates whether the eligibility criteria mentions a diagnosis of any known congenital bone marrow failure syndrome (e.g. Fanconi anemia, Kostmann syndrome, Shwachman syndrome). Note: just 'bone marrow' does not count.")
-  # diag_cong_bmf: Optional[Yes_no] = Field(
-  #   None, 
-  #   description='Does the eligibility criteria mention a diagnosis of any known congenital bone marrow failure syndrome (e.g. Fanconi anemia, Kostmann syndrome, Shwachman syndrome)?')
-  # diag_malabsoption_fact: str = Field(..., description='The fact that indicates whether the eligibility criteria mentions a diagnosis of malabsorption syndrome')
-  # diag_malabsoption: Optional[Yes_no] = Field(
-  #   None, 
-  #   description='Does the eligibility criteria mention a diagnosis of malabsorption syndrome?')
 
+class test(BaseModel):
+  diag_down_syndrome_yn: Optional[Yes_no] = Field(
+    None, 
+    description='Does the eligibility criteria mention a diagnosis of Down syndrome?')
+  diag_down_syndrome: Optional[Yes_no] = Field(
+    None, 
+    description='Is a patient with a diagnosis of Down syndrome to be excluded?')  
+  sex_yn: Optional[Yes_no] = Field(
+    None, 
+    description='Does the eligibility criteria mention gender?')
+  sex: Optional[List[Sex]] = Field(
+    None, 
+    description='Which sexes are eligible in the eligibility criteria?')
+  
 class Demographic(BaseModel):
   age_min: Optional[int] = Field(
     None, 
@@ -90,6 +93,7 @@ class Demographic(BaseModel):
   diagnosis: Optional[List[Diagnosis]] = Field(
     None, 
     description='Which diagnoses are eligible in this clinical trial?')
+
 
 class Refractory_Relapse(BaseModel):
   ever_refractory_fact: str = Field(..., description='The fact that indicates whether the eligibility criteria mentions refractory disease')
@@ -181,9 +185,12 @@ class Diagnosis(BaseModel):
   karnofksy_min: Optional[int] = Field(
     None, 
     description='What is the minimum Karnofsky score a patient must have to be eligible? Example: the answer is 50 if "Karnofsky score >= 50" is mentioned')
-  diag_down_syndrome: Optional[Yes_no] = Field(
+  diag_down_syndrome_yn: Optional[Yes_no] = Field(
     None, 
     description='Does the eligibility criteria mention a diagnosis of Down syndrome?')
+  diag_down_syndrome: Optional[Yes_no] = Field(
+    None, 
+    description='Is a patient with a diagnosis of Down syndrome to be {verb}?')  
   diag_iso_emd: Optional[Yes_no] = Field(
     None, 
     description='Does the eligibility criteria mention a diagnosis of isolated extramedullary disease (i.e. the absence of bone marrow involvement)?')
