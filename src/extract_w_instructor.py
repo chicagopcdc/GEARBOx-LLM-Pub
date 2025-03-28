@@ -53,20 +53,10 @@ def process_criteria(item, class_fields_ic, class_fields_ec, in_client, chunk_si
     df_IC = process_chunk_with_dynamic_model(clean_text_ic, 'Inclusion', class_fields_ic, in_client, chunk_size)
     df_EC = process_chunk_with_dynamic_model(clean_text_ec, 'Exclusion', class_fields_ec, in_client, chunk_size)
 
-    # if chunk_size == 1:
-    #     # Run LLM one-by-one
-    #     df_IC = process_with_dynamic_model(clean_text_ic, 'Inclusion', class_fields_ic, in_client)
-    #     df_EC = process_with_dynamic_model(clean_text_ec, 'Exclusion', class_fields_ec, in_client)
-    # else:
-    #     # Run LLM in chunks
-    #     df_IC = process_chunk_with_dynamic_model(clean_text_ic, 'Inclusion', class_fields_ic, in_client)
-    #     df_EC = process_chunk_with_dynamic_model(clean_text_ec, 'Exclusion', class_fields_ec, in_client)
-
     # Merge the two DataFrames on the 'Entity' column
     df_final = pd.merge(df_IC, df_EC, on='Entity', how='outer', suffixes=('_IC', '_EC'))
 
     return df_final
-
 
 def filename_wo_extension(file_path):
     """Prints the filename without the directory and extension."""
@@ -75,9 +65,10 @@ def filename_wo_extension(file_path):
     return file_name
 
 def export_results(df, file_name, output_dir):
+    output_dir = output_dir.rstrip(os.path.sep)
     os.makedirs(os.path.basename(output_dir), exist_ok=True)
 
-    output_excel_path = f'{output_dir}{file_name}_output_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+    output_excel_path = f'{output_dir}{os.path.sep}{file_name}_output_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     df.to_excel(output_excel_path, index=False)
 
 def main():
@@ -85,6 +76,7 @@ def main():
     GOOGLE_SPREADSHEET_ID = os.environ.get('GOOGLE_SPREADSHEET_ID')
     GOOGLE_RANGE_NAME = os.environ.get('GOOGLE_RANGE_NAME')
     gearbox_df = read_google_sheet(GOOGLE_SPREADSHEET_ID, GOOGLE_RANGE_NAME)
+    CHUNK_SIZE = int(os.environ.get('CHUNK_SIZE', 2))  # Default chunk size is 2 if not set
 
     # # Generate class fields and enums
     class_fields_ic, enum_classes = generate_class_fields_and_enums(gearbox_df, "included")
@@ -105,10 +97,18 @@ def main():
     abstract_list = read_abstracts(INPUT_DIR_NAME)
 
     for item in abstract_list:
+        starttime = datetime.now()
+
+        print("----------------------------------------")
         print("Processing file:", filename_wo_extension(item[0]))
-        df_final = process_criteria(item, class_fields_ic, class_fields_ec, in_client, 1)
-        # df_final = process_criteria(item, class_fields_ic, class_fields_ec, in_client, 2)
+        print("Process started:", starttime.strftime("%Y-%m-%d %H:%M:%S"))
+
+        df_final = process_criteria(item, class_fields_ic, class_fields_ec, in_client, CHUNK_SIZE)
+
         export_results(df_final, filename_wo_extension(item[0]), OUTPUT_DIR_NAME)
+
+        endtime = datetime.now()
+        print("Processing time for file:", filename_wo_extension(item[0]), f"{(endtime - starttime).strftime("%Y-%m-%d %H:%M:%S")}")
 
 if __name__ == "__main__":
     main()
