@@ -50,7 +50,9 @@ def generate_class_fields_and_enums(df, verb):
             description += f" Example: {example}"
         parts = description.split('?')
         first_yesno = parts[0] + '?'
-        second_criteria = parts[1].strip().replace("{verb}", verb)
+        second_criteria = parts[1].strip().replace("{verb}", verb) + '? '
+        if len(parts) > 2:
+            second_criteria = second_criteria + parts[2].replace('"', '\\"')
         
         fields[param_name_exist] = f"Yes_no = Field(..., description=\"{first_yesno}\")"
         fields[param_name] = f"{field_type} = Field(\n        None, \n        description=\"{second_criteria}\")"
@@ -63,35 +65,6 @@ def generate_class_fields_and_enums(df, verb):
     enum_classes["Yes_no"] = enum_class_str
 
     return fields, enum_classes
-
-# def process_with_dynamic_model(criteria_text:str, criteria_type:str, class_fields, in_client):
-#     # exec(class_enum)
-
-#     entity_value_list = []
-#     # Loop through each field and process
-#     for field_name, field_definition in class_fields.items():
-#         # Dynamically create the response model class
-#         class_basemodel = f"""
-# class Entity(BaseModel):
-#     {field_name}: {field_definition}
-# """
-#         # Compile the class definition into a Python class
-#         exec(class_basemodel)
-
-#         response_model = locals()["Entity"]
-
-#         print(f"Processing field '{field_name}'")
-#         # Initialize and use the classifier
-#         try:
-#             Classifier = GearboxLLM(response_model=response_model, client=in_client)
-#             output = Classifier.output(criteria=criteria_text, type=criteria_type)
-#         except Exception as e:
-#             print(f"Error processing field '{field_name}': {e}")
-
-#         entity_value_list.append(output)
-#     df_c = pd.concat(entity_value_list, ignore_index=True)
-    
-#     return df_c
 
 # Helper function to get dictionary chunks of size 2
 def dict_chunk(dictionary:dict, size:int = 2):
