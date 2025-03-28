@@ -108,7 +108,8 @@ def main():
         export_results(df_final, filename_wo_extension(item[0]), OUTPUT_DIR_NAME)
 
         endtime = datetime.now()
-        print("Processing time for file:", filename_wo_extension(item[0]), f"{(endtime - starttime).strftime("%Y-%m-%d %H:%M:%S")}")
+        time_elapsed = endtime - starttime
+        print(f'Processing time for file: {filename_wo_extension(item[0])} {time_elapsed.strftime("%Y-%m-%d %H:%M:%S")}')
 
 if __name__ == "__main__":
     main()
