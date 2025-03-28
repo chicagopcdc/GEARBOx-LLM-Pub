@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Create `.env` file for credentials and Azure OpenAI service access
+- Create `.env` file on the root directory used for accessing Azure OpenAI service
 
 ```bash
 export AZURE_OPENAI_API_KEY="[YOUR_API_KEY_VALUE]"
@@ -14,7 +14,7 @@ export AZURE_OPENAI_API_VERSION="2024-05-01-preview"
 ```
 
 - `source .env` to load environmental variables on your local system
-- Python libraries required for the GEARBOx LLM task are listed in `[requirements.txt](requirements.txt)`
+- Python libraries required for the GEARBOx LLM task are listed in `[requirements.txt](./requirements.txt)`
 - `openai`, `instructor`, and `pydantic` are core libraries.
 - Google Sheets API
 
@@ -36,11 +36,12 @@ export OUTPUT_IC_PATH="Entity_IC.py"
 export OUTPUT_EC_PATH="Entity_EC.py"
 ```
 
-- `generate_entity_classes.sh` 1. Read Google spreadsheet using Sheets API, 2. generate response models for LLM task extracting inclusion criteria (`Entity_IC.py`) and exclusion criteria (`Entity_EC.py`).
+- `[generate_entity_classes.sh](./generate_entity_classes.sh)` 1. Read Google spreadsheet using Sheets API, 2. generate response models for LLM task extracting inclusion criteria (`./src/Entity_IC.py`) and exclusion criteria (`./src/Entity_EC.py`).
 
 ## Execute GEARBOx LLM
 
-- Update variables in `run_gearbox_llm.sh`. The input/output path will be changed to cloud storage (TBD).
+- `Entity_IC.py` and `Entity_EC.py` should be generated using `[generate_entity_classes.sh](./generate_entity_classes.sh)` before executing GEARBOx LLM.
+- Update variables in `[run_gearbox_llm.sh](./run_gearbox_llm.sh)`. The input/output path will be changed to cloud storage (TBD).
 - `GOOGLE_SPREADSHEET_ID` and `GOOGLE_RANGE_NAME` are used in dynamic generation of entity classes on runtime.
 
 ```bash
@@ -48,4 +49,6 @@ export GOOGLE_SPREADSHEET_ID="1hpPyjNbRXZFSSo6YwOYaDEZRhE43SROI6A6fs3rgoXc"
 export GOOGLE_RANGE_NAME="'GEARBOx v5 - Complex - Revised'!A1:I113"
 export INPUT_DATA_PATH="input/"
 export OUTPUT_DATA_PATH="output/"
+# Chunk size of LLM processing
+export CHUNK_SIZE=2
 ```
