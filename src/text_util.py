@@ -69,6 +69,6 @@ def read_abstracts(input: str) -> list:
     abstract_list = df[['File Name', 'Inclusion Criteria', 'Exclusion Criteria']].values.tolist()
     return abstract_list
 
-def export_class_to_file(output_path: str, class_definition:str):
+def export_response_model_to_file(output_path: str, class_definition:str):
     with open(output_path, 'w') as file:
         file.write(class_definition)
