@@ -2,15 +2,13 @@ import os
 import instructor
 import pandas as pd
 from text_util import read_abstracts, clean_text
-from response_model import generate_class_fields_and_enums, process_chunk_with_dynamic_model
-from sheet_to_class import read_google_sheet
+from exec_response_model import exec
+from sheet_to_model import read_google_sheet, read_excel_file
 from openai import AzureOpenAI
 from functools import partial
 from datetime import datetime
 from enum import Enum
 
-# from Entity_IC import Entity as Entity_IC
-# from Entity_EC import Entity as Entity_EC
 
 def initiate_llm():
     api_version = os.environ.get('AZURE_OPENAI_API_VERSION')
@@ -72,21 +70,31 @@ def export_results(df, file_name, output_dir):
     df.to_excel(output_excel_path, index=False)
 
 def main():
-    # Read GEARBOx knowledge base
-    GOOGLE_SPREADSHEET_ID = os.environ.get('GOOGLE_SPREADSHEET_ID')
-    GOOGLE_RANGE_NAME = os.environ.get('GOOGLE_RANGE_NAME')
-    gearbox_df = read_google_sheet(GOOGLE_SPREADSHEET_ID, GOOGLE_RANGE_NAME)
-    CHUNK_SIZE = int(os.environ.get('CHUNK_SIZE', 2))  # Default chunk size is 2 if not set
+    data_source = os.environ.get('DATA_SOURCE', 'google_sheet')  # Default to Google Sheet
 
-    # # Generate class fields and enums
-    class_fields_ic, enum_classes = generate_class_fields_and_enums(gearbox_df, "included")
-    class_fields_ec, _ = generate_class_fields_and_enums(gearbox_df, "excluded")    
+    if data_source == 'google_sheet':
+        google_spreadsheet_id = os.environ.get('GOOGLE_SPREADSHEET_ID')
+        google_range_name = os.environ.get('GOOGLE_RANGE_NAME')
 
-    class_enum = ""
-    for enum_name, enum_definition in enum_classes.items():
-        class_enum += f"{enum_definition}\n"
+        print("Generating entity classes from Google Sheet")
+        print("Google spreadsheet ID:", google_spreadsheet_id)
+        print("Google sheet range:", google_range_name)
 
-    exec(class_enum)
+        gearbox_df = read_google_sheet(google_spreadsheet_id, google_range_name)
+
+    elif data_source == 'local_file':
+        excel_file_path = os.environ.get('EXCEL_FILE_PATH')
+        excel_sheet_name = os.environ.get('EXCEL_SHEET_NAME')
+
+        print("Generating entity classes from local Excel file")
+        print("Excel file path:", excel_file_path)
+        print("Excel sheet name:", excel_sheet_name)
+
+        gearbox_df = read_excel_file(excel_file_path, excel_sheet_name)
+
+    else:
+        print("Invalid data source. Please set DATA_SOURCE to 'google_sheet' or 'local_file'.")
+        return
 
     in_client = initiate_llm()
 

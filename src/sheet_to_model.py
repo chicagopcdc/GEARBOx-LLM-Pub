@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from exec_response_model import generate_class_fields_and_enums
+import re
 from text_util import export_response_model_to_file
 from itertools import islice
 
@@ -48,8 +48,68 @@ def read_excel_file(file_path: str, sheet_name: str) -> pd.DataFrame:
     """
     return pd.read_excel(file_path, sheet_name=sheet_name)
 
-# generate_entity_class("Entity_IC.py", class_definition_ic)
-# generate_entity_class("Entity_EC.py", class_definition_ec)
+# Function to generate class fields and enums
+def generate_class_fields_and_enums(df, verb):
+    fields = {}
+    enum_classes = {}  # Dictionary to store generated enum classes as strings
+    docstring = []
+
+    for _, row in df.iterrows():
+        param_name = row['Parameter Name']
+        param_name_exist = f"{param_name}_exist"
+
+        # Determine the field type based on 'Type' and 'Enum' columns
+        if row['Type'] in ['integer', 'number']:
+            field_type = 'Optional[int]'
+        elif pd.notna(row['Enum']) and 'Yes' in row['Enum']:
+            field_type = 'Optional[Yes_no]'  # Assuming YesOrNo is a defined type elsewhere
+        elif pd.notna(row['Enum']):
+            field_type = f"Optional[List[{param_name.capitalize()}]]"
+            
+            # Create an enum class for this parameter
+            enum_items = [item.strip().strip('"') for item in row['Enum'].split(',')]
+            enum_class_str = f"class {param_name.capitalize()}(Enum):\n"
+            for item in enum_items:
+                if "(" in item and ")" in item:
+                    enum_name = re.search(r"\((.*?)\)", item).group(1)
+                    enum_name = enum_name.strip().replace(" ", "")
+                    enum_name = enum_name.strip().replace("-", "").upper()
+                else:
+                    enum_name = item.strip().replace("-", "").replace(" ", "").upper()
+                enum_class_str += f"    {enum_name} = \"{item}\"\n"
+            
+            enum_classes[param_name.capitalize()] = enum_class_str
+            
+        else:
+            field_type = 'Optional[str]'
+
+        # 
+        description = row['Description']
+        example = row['Examples']
+        if pd.notna(example) and example.strip():
+            example_str = f"    Extracted from the clinical trial eligibility document.\nExample: {example}"
+        else:
+            example_str = "    Extracted from the clinical trial eligibility document."
+        docstring.append(f"    \'\'\'\n{example_str}\n    \'\'\'\n")
+            
+        parts = description.split('?')
+        first_yesno = parts[0] + '?'
+        second_criteria = parts[1].strip().replace("{verb}", verb) + '? '
+        if len(parts) > 2:
+            second_criteria = second_criteria + parts[2].replace('"', '\\"')
+        
+        fields[param_name_exist] = f"Yes_no = Field(..., description=\"{first_yesno}\")"
+        fields[param_name] = f"{field_type} = Field(\n        None, \n        description=\"{second_criteria}\")"
+    
+    enum_items = ["Yes","No"]
+    enum_class_str = f"class Yes_no(Enum):\n"
+    for item in enum_items:
+        enum_name = item.upper()
+        enum_class_str += f"    {enum_name} = \"{item}\"\n"
+    enum_classes["Yes_no"] = enum_class_str
+
+    return fields, enum_classes, docstring
+
 
 # Helper function to get dictionary chunks of size 2
 def dict_chunk(dictionary:dict, size:int = 2):
@@ -59,8 +119,8 @@ def dict_chunk(dictionary:dict, size:int = 2):
 
 def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
 # Generate class fields from the DataFrame
-    class_fields_ic, enum_classes = generate_class_fields_and_enums(gearbox_df, "included")
-    class_fields_ec, _ = generate_class_fields_and_enums(gearbox_df, "excluded")
+    class_fields_ic, enum_classes, docstring = generate_class_fields_and_enums(gearbox_df, "included")
+    class_fields_ec, _, _ = generate_class_fields_and_enums(gearbox_df, "excluded")
 
     class_definition = (
         "from enum import Enum\n"
@@ -94,7 +154,8 @@ def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
     # Generating the ic class as a string
     class_definition_ic = class_definition
     for i, chunk in enumerate(dict_chunk(class_fields_ic, size=chunk_size)):
-        class_definition_ic += f"class Entity{i}(BaseModel):\n"    
+        class_definition_ic += f"class Entity{i}(BaseModel):\n"
+        class_definition_ic += docstring[i]
         for field_name, field_definition in chunk:
             class_definition_ic += f"    {field_name}: {field_definition}\n"
         class_definition_ic += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"
@@ -103,6 +164,7 @@ def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
     class_definition_ec = class_definition
     for i, chunk in enumerate(dict_chunk(class_fields_ec, size=chunk_size)):
         class_definition_ec += f"class Entity{i}(BaseModel):\n"
+        class_definition_ec += docstring[i]
         for field_name, field_definition in chunk:
             class_definition_ec += f"    {field_name}: {field_definition}\n"
         class_definition_ec += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"
