@@ -3,8 +3,41 @@ from pydantic import BaseModel, Field
 from enum import Enum
 import pandas as pd
 import re
+import os
 
 T = TypeVar("T", bound=BaseModel)
+
+def initiate_llm():
+    api_version = os.environ.get('AZURE_OPENAI_API_VERSION')
+    api_key = os.environ.get('AZURE_OPENAI_API_KEY')
+    endpoint = os.environ.get('AZURE_OPENAI_API_BASE')
+    engine = os.environ.get('AZURE_OPENAI_API_DEPLOYMENT')
+    model = os.environ.get('AZURE_OPENAI_API_MODEL')
+
+    if api_key is None:
+        raise ValueError("AZURE_OPENAI_API_KEY environment variable is not set.")
+
+    # Create the Azure OpenAI client
+    client = AzureOpenAI(
+        api_version=api_version,
+        api_key=api_key,
+        azure_endpoint=endpoint,
+        azure_deployment=engine
+    )
+
+    # Patch the client with instructor
+    client = instructor.patch(client)
+
+    # Optionally, create a partial function with default parameters
+    in_client = partial(
+        client.chat.completions.create,
+        model=model,
+        temperature=0,
+        max_retries=2  # Retries in case of API issues
+    )
+
+    # print(in_client)
+    return in_client
 
 class  GearboxLLM:
     def __init__(self, response_model: Type[T], client):
