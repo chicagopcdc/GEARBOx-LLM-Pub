@@ -62,7 +62,7 @@ def generate_class_fields_and_enums(df, verb):
         if row['Type'] in ['integer', 'number']:
             field_type = 'Optional[int]'
         elif pd.notna(row['Enum']) and 'Yes' in row['Enum']:
-            field_type = 'Optional[Yes_no]'  # Assuming YesOrNo is a defined type elsewhere
+            field_type = 'Optional[YesNo]'  # Assuming YesOrNo is a defined type elsewhere
         elif pd.notna(row['Enum']):
             field_type = f"Optional[List[{param_name.capitalize()}]]"
             
@@ -98,15 +98,15 @@ def generate_class_fields_and_enums(df, verb):
         if len(parts) > 2:
             second_criteria = second_criteria + parts[2].replace('"', '\\"')
         
-        fields[param_name_exist] = f"Yes_no = Field(..., description=\"{first_yesno}\")"
+        fields[param_name_exist] = f"YesNo = Field(..., description=\"{first_yesno}\")"
         fields[param_name] = f"{field_type} = Field(\n        None, \n        description=\"{second_criteria}\")"
     
     enum_items = ["Yes","No"]
-    enum_class_str = f"class Yes_no(Enum):\n"
+    enum_class_str = f"class YesNo(Enum):\n"
     for item in enum_items:
         enum_name = item.upper()
         enum_class_str += f"    {enum_name} = \"{item}\"\n"
-    enum_classes["Yes_no"] = enum_class_str
+    enum_classes["YesNo"] = enum_class_str
 
     return fields, enum_classes, docstring
 
@@ -117,37 +117,63 @@ def dict_chunk(dictionary:dict, size:int = 2):
     for chunk in iter(lambda: list(islice(iterator, size)), []):
         yield chunk
 
+# Function to generate the response model class
+IMPORT_MODULE = """
+from enum import Enum
+from pydantic import BaseModel, Field, model_validator, ValidationInfo, validator
+from typing import Optional, List
+import re
+"""
+
+FACT = """
+class Fact(BaseModel):
+    fact: str = Field(...)
+    substring_quote: List[str] = Field(...)
+
+    @model_validator(mode="after")
+    def validate_sources(self, info: ValidationInfo) -> "Fact":
+        text_chunks = info.context.get("text_chunk", None)
+        spans = list(self.get_spans(text_chunks))
+        self.substring_quote = [text_chunks[span[0] : span[1]] for span in spans]
+        return self
+
+    def get_spans(self, context):
+        for quote in self.substring_quote:
+            yield from self._get_span(quote, context)
+
+    def _get_span(self, quote, context):
+        for match in re.finditer(re.escape(quote), context):
+            yield match.span()
+
+"""
+
+CONDITION_VALIDATOR = """
+    @model_validator(mode="after")
+    def skip_if_not_exist(self, info: ValidationInfo) -> "Entity{i}":
+        if getattr(self, "{exist_field}") == YesNo.NO:
+            if getattr(self, "{value_field}") is not None:
+                raise ValueError("{value_field} must be None if {exist_field} is 'NO'")
+            setattr(self, "{value_field}", None)
+            self.answer_facts = []
+        return self
+"""
+
+SOURCE_VALIDATOR = """  
+    @model_validator(mode='after')
+    def validate_sources(self) -> "Entity{i}":
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
+        return self
+
+"""
+
 def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
 # Generate class fields from the DataFrame
     class_fields_ic, enum_classes, docstring = generate_class_fields_and_enums(gearbox_df, "included")
     class_fields_ec, _, _ = generate_class_fields_and_enums(gearbox_df, "excluded")
 
-    class_definition = (
-        "from enum import Enum\n"
-        "from pydantic import BaseModel, Field, model_validator, ValidationInfo\n"
-        "from typing import Optional, List\n"
-        "import re\n\n"
-    )
-
-    # Define the Fact class
-    class_definition += (
-        "class Fact(BaseModel):\n"
-        "    fact: str = Field(...)\n"
-        "    substring_quote: List[str] = Field(...)\n\n"
-        "    @model_validator(mode=\"after\")\n"
-        "    def validate_sources(self, info: ValidationInfo) -> \"Fact\":\n"
-        "        text_chunks = info.context.get(\"text_chunk\", None)\n"
-        "        spans = list(self.get_spans(text_chunks))\n"
-        "        self.substring_quote = [text_chunks[span[0] : span[1]] for span in spans]\n"
-        "        return self\n\n"
-        "    def get_spans(self, context):\n"
-        "        for quote in self.substring_quote:\n"
-        "            yield from self._get_span(quote, context)\n\n"
-        "    def _get_span(self, quote, context):\n"
-        "        for match in re.finditer(re.escape(quote), context):\n"
-        "            yield match.span()\n\n"
-    )
-
+    class_definition = IMPORT_MODULE
+    class_definition += FACT
+    
     for enum_name, enum_definition in enum_classes.items():
         class_definition += f"{enum_definition}\n"
 
@@ -156,9 +182,17 @@ def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
     for i, chunk in enumerate(dict_chunk(class_fields_ic, size=chunk_size)):
         class_definition_ic += f"class Entity{i}(BaseModel):\n"
         class_definition_ic += docstring[i]
+        name_list = []
         for field_name, field_definition in chunk:
             class_definition_ic += f"    {field_name}: {field_definition}\n"
+            name_list.append(field_name)
         class_definition_ic += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"
+        class_definition_ic += CONDITION_VALIDATOR.format(
+            i=i,
+            exist_field=name_list[0],
+            value_field=name_list[1],
+        )
+        class_definition_ic += SOURCE_VALIDATOR.format(i=i)
 
     # Generating the ec class as a string
     class_definition_ec = class_definition
@@ -168,7 +202,7 @@ def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
         for field_name, field_definition in chunk:
             class_definition_ec += f"    {field_name}: {field_definition}\n"
         class_definition_ec += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"
-
+        class_definition_ec += SOURCE_VALIDATOR.format(i=i)
 
     return class_definition_ic, class_definition_ec
 

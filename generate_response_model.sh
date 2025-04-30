@@ -8,7 +8,8 @@ export GOOGLE_SPREADSHEET_ID="1hpPyjNbRXZFSSo6YwOYaDEZRhE43SROI6A6fs3rgoXc"
 export GOOGLE_RANGE_NAME="'GEARBOx v5'!A1:F113"
 
 export EXCEL_FILE_PATH="GEARBOx Ontology for LLM.xlsx"
-export EXCEL_SHEET_NAME="GEARBOx v5"
+# export EXCEL_SHEET_NAME="GEARBOx v5"
+export EXCEL_SHEET_NAME="Test"
 
 export RESPONSE_MODEL_OUTPUT_PATH="src/"
 export OUTPUT_IC_PATH="Response_Model_IC.py"

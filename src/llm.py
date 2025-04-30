@@ -61,18 +61,6 @@ class  GearboxLLM:
                     "role": "user",
                     "content": f"Here is the {type} Criteria section {criteria}",
                 },
-                # {
-                #     "role": "user",
-                #     "content": f'''Please follow the following guidelines to answer the questions:
-                #                 * Ensure you distinguish between 'CYP3A4' and 'CYP3A'. They are distinct, and an instance of 'CYP3A' should not be interpreted as 'CYP3A4'.
-                #                 * Given content 'Refractory leukemia, defined as persistent leukemia after at least two courses of induction chemotherapy', 
-                #                 it does not indicate occurrences of refractory disease but indicates the number of cycles of therapy required for refractory disease.
-                #                 * Given content 'evidence of leukemia with ≥ 5% blasts in the blood', it dose not indicate blood absolute blast count but indicates blood blast percentage.
-                #                 * Given content 'At least 24 hours must have elapsed since the completion of low-dose or non- myelosuppressive therapy', 
-                #                 it indicates prior exposure to non-myelosuppressive anti-cancer agents.
-                #                 * Given content 'At least 14 days must have elapsed since the completion of myelosuppressive therapy', it indicates prior exposure to myelosuppressive anti-cancer agents.
-                #                 ''',
-                # },
             ],
             validation_context={"text_chunk": criteria},
         ) 
@@ -94,11 +82,9 @@ class  GearboxLLM:
                 "Entity": list(entity_dict.keys()),
                 "Value": list(entity_dict.values()),
             }
-            df = pd.DataFrame(entity_value_data)
-            return df
+            # df = pd.DataFrame(entity_value_data)
+            return entity_value_data
         
         except Exception as e:
             print(f"Error in output method: {str(e)}")
-            # Return an empty DataFrame if an error occurs
-            return pd.DataFrame(columns=["Entity", "Value"])
 

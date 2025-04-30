@@ -40,7 +40,7 @@ def exec(criteria_text: str,
     output_ec_path = os.environ.get('OUTPUT_EC_PATH')
     
     if criteria_type == 'Inclusion':
-        model_file_path =  os.path.join(response_model_output_path, output_ic_path)
+        model_file_path = os.path.join(response_model_output_path, output_ic_path)
     else:
         model_file_path = os.path.join(response_model_output_path, output_ec_path)
    
@@ -49,10 +49,10 @@ def exec(criteria_text: str,
     responses = []
 
     for i, Model in enumerate(EntityModel):
-
         try:
             classifier = GearboxLLM(response_model=Model, client=in_client)
             output = classifier.output(criteria=criteria_text, type=criteria_type)
+            print(f"[Success] Processed Entity{i} : {output}")
             responses.append(output)
         except Exception as e:
             print(f"[Error] Failed to process Entity{i} : {e}")
