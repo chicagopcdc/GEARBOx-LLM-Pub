@@ -46,10 +46,19 @@ Example: the answer is >=2 if "Second or greater relapse"; the answer is 1 if "f
         None, 
         description="If so, what is the minimum number of relapses required to be excluded? ")
     answer_facts: List[Fact] = Field(..., description="Exact fact quotes from the note supporting the answer.")
+
+    @model_validator(mode="after")
+    def skip_if_not_exist(self, info: ValidationInfo) -> "Entity0":
+        if getattr(self, "count_relapse_exist") == YesNo.NO:
+            if getattr(self, "count_relapse") is not None:
+                raise ValueError("count_relapse must be None if count_relapse_exist is 'NO'")
+            setattr(self, "count_relapse", None)
+            self.answer_facts = []
+        return self
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity0":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity1(BaseModel):
@@ -62,10 +71,19 @@ Example: the answer is 5 if ">= 5% blasts in the bone marrow", the answer is 5 i
         None, 
         description="If so, what is the minimum bone marrow blast percentage considered to be excluded? ")
     answer_facts: List[Fact] = Field(..., description="Exact fact quotes from the note supporting the answer.")
+
+    @model_validator(mode="after")
+    def skip_if_not_exist(self, info: ValidationInfo) -> "Entity1":
+        if getattr(self, "bm_recent_blast_pct_meas_exist") == YesNo.NO:
+            if getattr(self, "bm_recent_blast_pct_meas") is not None:
+                raise ValueError("bm_recent_blast_pct_meas must be None if bm_recent_blast_pct_meas_exist is 'NO'")
+            setattr(self, "bm_recent_blast_pct_meas", None)
+            self.answer_facts = []
+        return self
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity1":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity2(BaseModel):
@@ -78,10 +96,19 @@ Example: "Morphology", "Flow cytometry"; None, if no specific method is mentione
         None, 
         description="If so, what are the required methods for bone marrow blast percentage assessment considered to be excluded? ")
     answer_facts: List[Fact] = Field(..., description="Exact fact quotes from the note supporting the answer.")
+
+    @model_validator(mode="after")
+    def skip_if_not_exist(self, info: ValidationInfo) -> "Entity2":
+        if getattr(self, "bm_recent_blast_method_exist") == YesNo.NO:
+            if getattr(self, "bm_recent_blast_method") is not None:
+                raise ValueError("bm_recent_blast_method must be None if bm_recent_blast_method_exist is 'NO'")
+            setattr(self, "bm_recent_blast_method", None)
+            self.answer_facts = []
+        return self
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity2":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity3(BaseModel):
@@ -94,10 +121,19 @@ Example: Do not calculate the absolute blast count unless all the necessary meas
         None, 
         description="If so, what is the absolute blast count in peripheral blood measurement (in cells/microliter) considered to be excluded? ")
     answer_facts: List[Fact] = Field(..., description="Exact fact quotes from the note supporting the answer.")
+
+    @model_validator(mode="after")
+    def skip_if_not_exist(self, info: ValidationInfo) -> "Entity3":
+        if getattr(self, "periph_blood_blast_abs_meas_exist") == YesNo.NO:
+            if getattr(self, "periph_blood_blast_abs_meas") is not None:
+                raise ValueError("periph_blood_blast_abs_meas must be None if periph_blood_blast_abs_meas_exist is 'NO'")
+            setattr(self, "periph_blood_blast_abs_meas", None)
+            self.answer_facts = []
+        return self
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity3":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity4(BaseModel):
@@ -110,10 +146,19 @@ Example: the answer is 5 if ">= 5% blasts in the peripheral blood" is mentioned,
         None, 
         description="If so, what is the minimum peripheral blood blast percentage considered to be excluded? ")
     answer_facts: List[Fact] = Field(..., description="Exact fact quotes from the note supporting the answer.")
+
+    @model_validator(mode="after")
+    def skip_if_not_exist(self, info: ValidationInfo) -> "Entity4":
+        if getattr(self, "periph_blood_blast_pct_meas_exist") == YesNo.NO:
+            if getattr(self, "periph_blood_blast_pct_meas") is not None:
+                raise ValueError("periph_blood_blast_pct_meas must be None if periph_blood_blast_pct_meas_exist is 'NO'")
+            setattr(self, "periph_blood_blast_pct_meas", None)
+            self.answer_facts = []
+        return self
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity4":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity5(BaseModel):
@@ -125,10 +170,19 @@ class Entity5(BaseModel):
         None, 
         description="If so, is a patient with such diagnosis considered to be excluded? ")
     answer_facts: List[Fact] = Field(..., description="Exact fact quotes from the note supporting the answer.")
+
+    @model_validator(mode="after")
+    def skip_if_not_exist(self, info: ValidationInfo) -> "Entity5":
+        if getattr(self, "corneal_epitheliopathy_exist") == YesNo.NO:
+            if getattr(self, "corneal_epitheliopathy") is not None:
+                raise ValueError("corneal_epitheliopathy must be None if corneal_epitheliopathy_exist is 'NO'")
+            setattr(self, "corneal_epitheliopathy", None)
+            self.answer_facts = []
+        return self
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity5":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity6(BaseModel):
@@ -145,9 +199,18 @@ CNS 3: WBCs/μL >5, RBCs/μL <10, Leukemic blasts: Present
         None, 
         description="If so, what CNS status is considered to be excluded? ")
     answer_facts: List[Fact] = Field(..., description="Exact fact quotes from the note supporting the answer.")
+
+    @model_validator(mode="after")
+    def skip_if_not_exist(self, info: ValidationInfo) -> "Entity6":
+        if getattr(self, "cns_status_exist") == YesNo.NO:
+            if getattr(self, "cns_status") is not None:
+                raise ValueError("cns_status must be None if cns_status_exist is 'NO'")
+            setattr(self, "cns_status", None)
+            self.answer_facts = []
+        return self
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity6":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 

@@ -13,9 +13,10 @@ export RESPONSE_MODEL_OUTPUT_PATH="src/"
 export OUTPUT_IC_PATH="Response_Model_IC.py"
 export OUTPUT_EC_PATH="Response_Model_EC.py"
 
-export INPUT_DATA_PATH="input/"
+export INPUT_DATA_PATH="input_test/"
 export OUTPUT_DATA_PATH="output/"
-export CHUNK_SIZE=2
+
+export N_REPEATS=1
 
 # CFG Parser Config
 CMD="./src/extract_w_instructor.py"

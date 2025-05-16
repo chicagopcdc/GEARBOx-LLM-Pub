@@ -78,12 +78,12 @@ class  GearboxLLM:
                 elif isinstance(value, Enum):
                     entity_dict[key] = value.value  # For single Enum fields
 
-            entity_value_data = {
-                "Entity": list(entity_dict.keys()),
-                "Value": list(entity_dict.values()),
-            }
+            # entity_value_data = {
+            #     "Entity": list(entity_dict.keys()),
+            #     "Value": list(entity_dict.values()),
+            # }
             # df = pd.DataFrame(entity_value_data)
-            return entity_value_data
+            return entity_dict
         
         except Exception as e:
             print(f"Error in output method: {str(e)}")

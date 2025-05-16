@@ -199,11 +199,18 @@ def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
     for i, chunk in enumerate(dict_chunk(class_fields_ec, size=chunk_size)):
         class_definition_ec += f"class Entity{i}(BaseModel):\n"
         class_definition_ec += docstring[i]
+        name_list = []
         for field_name, field_definition in chunk:
             class_definition_ec += f"    {field_name}: {field_definition}\n"
+            name_list.append(field_name)
         class_definition_ec += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"
+        class_definition_ec += CONDITION_VALIDATOR.format(
+            i=i,
+            exist_field=name_list[0],
+            value_field=name_list[1],
+        )        
         class_definition_ec += SOURCE_VALIDATOR.format(i=i)
-
+        
     return class_definition_ic, class_definition_ec
 
 def main():

@@ -55,11 +55,10 @@ Example: the answer is >=2 if "Second or greater relapse"; the answer is 1 if "f
             setattr(self, "count_relapse", None)
             self.answer_facts = []
         return self
-
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity0":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity1(BaseModel):
@@ -81,11 +80,10 @@ Example: the answer is 5 if ">= 5% blasts in the bone marrow", the answer is 5 i
             setattr(self, "bm_recent_blast_pct_meas", None)
             self.answer_facts = []
         return self
-
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity1":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity2(BaseModel):
@@ -107,11 +105,10 @@ Example: "Morphology", "Flow cytometry"; None, if no specific method is mentione
             setattr(self, "bm_recent_blast_method", None)
             self.answer_facts = []
         return self
-
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity2":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity3(BaseModel):
@@ -133,11 +130,10 @@ Example: Do not calculate the absolute blast count unless all the necessary meas
             setattr(self, "periph_blood_blast_abs_meas", None)
             self.answer_facts = []
         return self
-
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity3":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity4(BaseModel):
@@ -159,11 +155,10 @@ Example: the answer is 5 if ">= 5% blasts in the peripheral blood" is mentioned,
             setattr(self, "periph_blood_blast_pct_meas", None)
             self.answer_facts = []
         return self
-
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity4":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity5(BaseModel):
@@ -184,11 +179,10 @@ class Entity5(BaseModel):
             setattr(self, "corneal_epitheliopathy", None)
             self.answer_facts = []
         return self
-
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity5":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 
 class Entity6(BaseModel):
@@ -214,10 +208,9 @@ CNS 3: WBCs/μL >5, RBCs/μL <10, Leukemic blasts: Present
             setattr(self, "cns_status", None)
             self.answer_facts = []
         return self
-
   
     @model_validator(mode='after')
     def validate_sources(self) -> "Entity6":
-        self.answer_fact = [fact for fact in self.answer_fact if len(fact.substring_quote) > 0]
+        self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
 

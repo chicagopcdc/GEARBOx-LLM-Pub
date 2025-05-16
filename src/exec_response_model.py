@@ -52,7 +52,7 @@ def exec(criteria_text: str,
         try:
             classifier = GearboxLLM(response_model=Model, client=in_client)
             output = classifier.output(criteria=criteria_text, type=criteria_type)
-            print(f"[Success] Processed Entity{i} : {output}")
+            # print(f"[Success] Processed Entity{i} : {output}")
             responses.append(output)
         except Exception as e:
             print(f"[Error] Failed to process Entity{i} : {e}")
