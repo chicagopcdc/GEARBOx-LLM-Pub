@@ -166,4 +166,8 @@ not_to_track/
 
 #terraform 
 .terraform*
+<<<<<<< HEAD
 *.tfstate*
+=======
+*.tfstate*
+>>>>>>> main
