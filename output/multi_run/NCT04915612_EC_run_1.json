@@ -44,18 +44,9 @@
                 ]
             },
             {
-                "fact": "Evidence of active cerebral/meningeal disease",
+                "fact": "Evidence of active cerebral/meningeal disease. Patients may have history of CNS leukemic involvement if definitively treated with prior therapy and no evidence of active disease at the time of consent with at least 2 consecutive spinal fluid negative assessments for residual leukemia and negative imaging",
                 "substring_quote": [
-                    "active cerebral/meningeal disease"
-                ]
-            },
-            {
-                "fact": "Patients may have history of CNS leukemic involvement if definitively treated with prior therapy and no evidence of active disease at the time of consent with at least 2 consecutive spinal fluid negative assessments for residual leukemia and negative imaging",
-                "substring_quote": [
-                    "history of CNS leukemic involvement",
-                    "no evidence of active disease",
-                    "2 consecutive spinal fluid negative assessments",
-                    "negative imaging"
+                    "Evidence of active cerebral/meningeal disease"
                 ]
             }
         ]

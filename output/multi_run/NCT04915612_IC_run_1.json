@@ -1,34 +1,21 @@
 [
     {
         "count_relapse_exist": "Yes",
-        "count_relapse": "1",
-        "answer_facts": [
-            {
-                "fact": "Relapsed refractory acute myeloid leukemia by World Health Organization (WHO) criteria Patients must have >= 5% blasts in the bone marrow as assessed by morphology or flow cytometry.",
-                "substring_quote": [
-                    "Relapsed refractory acute myeloid leukemia"
-                ]
-            },
-            {
-                "fact": "However, if an adequate bone marrow sample cannot be obtained, patients may be enrolled if there is unequivocal evidence of leukemia with >= 5% blasts in the peripheral blood",
-                "substring_quote": [
-                    "Relapsed refractory acute myeloid leukemia"
-                ]
-            }
-        ]
+        "count_relapse": ">=2",
+        "answer_facts": []
     },
     {
         "bm_recent_blast_pct_meas_exist": "Yes",
         "bm_recent_blast_pct_meas": 5,
         "answer_facts": [
             {
-                "fact": ">= 5% blasts in the bone marrow",
+                "fact": "Patients must have >= 5% blasts in the bone marrow as assessed by morphology or flow cytometry.",
                 "substring_quote": [
                     ">= 5% blasts in the bone marrow"
                 ]
             },
             {
-                "fact": ">= 5% blasts in the peripheral blood",
+                "fact": "patients may be enrolled if there is unequivocal evidence of leukemia with >= 5% blasts in the peripheral blood",
                 "substring_quote": [
                     ">= 5% blasts in the peripheral blood"
                 ]

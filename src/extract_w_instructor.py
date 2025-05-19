@@ -64,18 +64,20 @@ def multi_run(item, in_client):
     clean_text_ic = clean_text(inclusion_criteria)
     clean_text_ec = clean_text(exclusion_criteria)
 
+    OUTPUT_MULTIRUN_NAME= os.environ.get('OUTPUT_MULTIRUN_PATH')
+
     for run in range(int(N_REPEATS)):
         print(f"Process run {run+1}: Inclusion Criteria")
         output_IC = exec(clean_text_ic, 'Inclusion', in_client)
         # Save output_IC_list to JSON
-        json_file_path = f"{file_name}_IC_run_{run+1}.json"
+        json_file_path = os.path.join(OUTPUT_MULTIRUN_NAME, f"{file_name}_IC_run_{run+1}.json")
         with open(json_file_path, "w") as json_file:
             json.dump(output_IC, json_file, indent=4)
         
         print(f"Process run {run+1}: Exclusion Criteria")
         output_EC = exec(clean_text_ec, 'Exclusion', in_client)
         # Save output_EC_list to JSON
-        json_file_path = f"{file_name}_EC_run_{run+1}.json"
+        json_file_path = os.path.join(OUTPUT_MULTIRUN_NAME, f"{file_name}_EC_run_{run+1}.json")
         with open(json_file_path, "w") as json_file:
             json.dump(output_EC, json_file, indent=4)
 
@@ -88,7 +90,6 @@ def summarize_runs(file_name, mode="IC"):
         with open(path, "r") as f:
             data = json.load(f)
             all_runs.append(data)
-    print(all_runs)
 
     # Organize data by entity
     entity_runs = defaultdict(list)  # Entity -> list of values
@@ -222,14 +223,15 @@ def main():
         # Run entity extraction multiple times
         _ = multi_run(item, in_client)  # JSONs are already saved here
 
-        # Summarize runs and get final output
-        summary_IC, best_run_idx_IC, best_output_IC = summarize_runs(file_name, mode="IC")
-        summary_EC, best_run_idx_EC, best_output_EC = summarize_runs(file_name, mode="EC")
-        print(f"Best run for Inclusion Criteria: {best_run_idx_IC}")
-        print(f"Best output: {best_output_IC}")
+        if N_REPEATS > 1:
+            # Summarize runs and get final output
+            summary_IC, best_run_idx_IC, best_output_IC = summarize_runs(file_name, mode="IC")
+            summary_EC, best_run_idx_EC, best_output_EC = summarize_runs(file_name, mode="EC")
+            print(f"Best run for Inclusion Criteria: {best_run_idx_IC}")
+            print(f"Best output: {best_output_IC}")
 
-        # Export results
-        export_results(summary_IC, summary_EC, best_run_idx_IC, best_run_idx_EC, best_output_IC, best_output_EC, file_name, OUTPUT_DIR_NAME)
+            # Export results
+            export_results(summary_IC, summary_EC, best_run_idx_IC, best_run_idx_EC, best_output_IC, best_output_EC, file_name, OUTPUT_DIR_NAME)
 
         endtime = datetime.now()
         time_elapsed = endtime - starttime
