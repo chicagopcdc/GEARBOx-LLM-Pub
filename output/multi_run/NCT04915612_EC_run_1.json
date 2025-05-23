@@ -38,15 +38,15 @@
         ],
         "answer_facts": [
             {
-                "fact": "Presence of clinically significant uncontrolled central nervous system (CNS) pathology such as epilepsy, childhood seizure, paresis, aphasia, stroke, severe brain injuries, organic brain syndrome, or psychosis",
-                "substring_quote": [
-                    "clinically significant uncontrolled central nervous system (CNS) pathology"
-                ]
-            },
-            {
-                "fact": "Evidence of active cerebral/meningeal disease. Patients may have history of CNS leukemic involvement if definitively treated with prior therapy and no evidence of active disease at the time of consent with at least 2 consecutive spinal fluid negative assessments for residual leukemia and negative imaging",
+                "fact": "Evidence of active cerebral/meningeal disease. Patients may have history of CNS leukemic involvement if definitively treated with prior therapy and no evidence of active disease at the time of consent with at least 2 consecutive spinal fluid negative assessments for residual leukemia and negative imaging (imaging required only if previously showing evidence of CNS leukemia not otherwise documented by spinal fluid assessment)",
                 "substring_quote": [
                     "Evidence of active cerebral/meningeal disease"
+                ],
+                "substring_indices": [
+                    [
+                        478,
+                        523
+                    ]
                 ]
             }
         ]
