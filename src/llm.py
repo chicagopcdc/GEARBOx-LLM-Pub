@@ -1,11 +1,16 @@
-from typing import TypeVar, Type, Optional, List
-from pydantic import BaseModel, Field
-from enum import Enum
-import pandas as pd
-import re
 import os
 
+from typing import TypeVar, Type
+from pydantic import BaseModel
+from enum import Enum
+import instructor
+from openai import AzureOpenAI
+from functools import partial
+from dotenv import load_dotenv
+
 T = TypeVar("T", bound=BaseModel)
+
+load_dotenv()
 
 def initiate_llm():
     api_version = os.environ.get('AZURE_OPENAI_API_VERSION')
@@ -39,7 +44,7 @@ def initiate_llm():
     # print(in_client)
     return in_client
 
-class  GearboxLLM:
+class GearboxLLM:
     def __init__(self, response_model: Type[T], client):
         self.response_model = response_model
         self.client = client
@@ -78,11 +83,6 @@ class  GearboxLLM:
                 elif isinstance(value, Enum):
                     entity_dict[key] = value.value  # For single Enum fields
 
-            # entity_value_data = {
-            #     "Entity": list(entity_dict.keys()),
-            #     "Value": list(entity_dict.values()),
-            # }
-            # df = pd.DataFrame(entity_value_data)
             return entity_dict
         
         except Exception as e:

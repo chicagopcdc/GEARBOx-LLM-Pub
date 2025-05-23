@@ -1,18 +1,21 @@
 
 from enum import Enum
-from pydantic import BaseModel, Field, model_validator, ValidationInfo, validator
-from typing import Optional, List
+from pydantic import BaseModel, Field, model_validator, ValidationInfo
+from typing import Optional, List, Tuple
 import re
 
 class Fact(BaseModel):
     fact: str = Field(...)
     substring_quote: List[str] = Field(...)
+    substring_indices: List[List[int]] = Field(default_factory=list, description="Indices of substring_quote in the context")
 
     @model_validator(mode="after")
     def validate_sources(self, info: ValidationInfo) -> "Fact":
-        text_chunks = info.context.get("text_chunk", None)
-        spans = list(self.get_spans(text_chunks))
-        self.substring_quote = [text_chunks[span[0] : span[1]] for span in spans]
+        context = info.context.get("text_chunk", None)
+        spans = list(self.get_spans(context))
+
+        self.substring_quote = [context[start:end] for start, end in spans]
+        self.substring_indices = [list(span) for span in spans]
         return self
 
     def get_spans(self, context):
