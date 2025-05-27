@@ -171,7 +171,7 @@ not_to_track/
 meeting_notes.md
 
 # token for google api
-toekn.json
+token.json
 credentials.json
 
 # token for openai api
