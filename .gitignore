@@ -166,8 +166,15 @@ not_to_track/
 
 #terraform 
 .terraform*
-<<<<<<< HEAD
 *.tfstate*
-=======
-*.tfstate*
->>>>>>> main
+
+meeting_notes.md
+
+# token for google api
+toekn.json
+credentials.json
+
+# token for openai api
+.env
+
+temp/
