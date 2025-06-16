@@ -15,7 +15,7 @@ load_dotenv()
 def initiate_llm():
     api_version = os.environ.get('AZURE_OPENAI_API_VERSION')
     api_key = os.environ.get('AZURE_OPENAI_API_KEY')
-    endpoint = os.environ.get('AZURE_OPENAI_API_BASE')
+    endpoint = os.environ.get('AZURE_OPENAI_API_ENDPOINT')
     engine = os.environ.get('AZURE_OPENAI_API_DEPLOYMENT')
     model = os.environ.get('AZURE_OPENAI_API_MODEL')
 
