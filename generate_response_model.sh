@@ -9,7 +9,7 @@ export GOOGLE_RANGE_NAME="'GEARBOx v5'!A1:F113"
 
 export EXCEL_FILE_PATH="GEARBOx Ontology for LLM.xlsx"
 export EXCEL_SHEET_NAME="GEARBOx v5"
-# export EXCEL_SHEET_NAME="Test"
+# export EXCEL_SHEET_NAME="GEARBOx v5-test"
 
 export RESPONSE_MODEL_OUTPUT_PATH="src/"
 export OUTPUT_IC_PATH="Response_Model_IC.py"

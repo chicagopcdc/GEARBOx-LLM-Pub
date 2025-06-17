@@ -13,7 +13,7 @@ export RESPONSE_MODEL_OUTPUT_PATH="src/"
 export OUTPUT_IC_PATH="Response_Model_IC.py"
 export OUTPUT_EC_PATH="Response_Model_EC.py"
 
-export INPUT_DATA_PATH="input_test/"
+export INPUT_DATA_PATH="input/"
 export OUTPUT_DATA_PATH="output/"
 export OUTPUT_MULTIRUN_PATH="output/multi_run"
 
