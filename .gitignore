@@ -184,3 +184,5 @@ GEARBOx Ontology for LLM.xlsx
 
 # output files
 output/
+
+.DS_Store
