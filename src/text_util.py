@@ -3,28 +3,43 @@ import os
 import pandas as pd
 
 ## Adopted codes from CFG parser.
-reMatchInclusions = "(?is)inclusions?(?: *:| criteria(?:[^:\n]*?:| *\n))(.*?)(?:[^\n]*exclusions?(?: *:| criteria(?:[^:\n]*?:| *\n))|$)"
-reMatchExclusions = "(?is)exclusions?(?: *:| criteria(?:[^:\n]*?:| *\n))(.*?)(?:[^\n]*inclusions?(?: *:| criteria(?:[^:\n]*?:| *\n))|$)"
+# reMatchInclusions = "(?is)inclusions?(?: *:| criteria(?:[^:\n]*?:| *\n))(.*?)(?:[^\n]*exclusions?(?: *:| criteria(?:[^:\n]*?:| *\n))|$)"
+# reMatchExclusions = "(?is)exclusions?(?: *:| criteria(?:[^:\n]*?:| *\n))(.*?)(?:[^\n]*inclusions?(?: *:| criteria(?:[^:\n]*?:| *\n))|$)"
 
-def extract_criteria(s: str, pattern: str) -> list:
-    values = re.split(pattern, s)
+# def extract_criteria(s: str, pattern: str) -> list:
+#     values = re.split(pattern, s)
 
-    if len(values) == 0:
-        return list()
+#     if len(values) == 0:
+#         return list()
 
-    if len(values) > 2:
-        c = list()
-        for i in range(int((len(values) - 1) / 2)):
-            c.append(values[(i * 2) + 1].strip())
-    return c
+#     if len(values) > 2:
+#         c = list()
+#         for i in range(int((len(values) - 1) / 2)):
+#             c.append(values[(i * 2) + 1].strip())
+#     return c
 
-def extract_inclusion_criteria(s: str) -> list:
-    """extract_inclusion_criteria extracts a block of inclusion criteria from the string."""
-    return extract_criteria(s, reMatchInclusions)
+# def extract_inclusion_criteria(s: str) -> list:
+#     """extract_inclusion_criteria extracts a block of inclusion criteria from the string."""
+#     return extract_criteria(s, reMatchInclusions)
 
-def extract_exclusion_criteria(s: str) -> list:
-    """extract_exclusion_criteria extracts a block of exclusion criteria from the string."""
-    return extract_criteria(s, reMatchExclusions)
+# def extract_exclusion_criteria(s: str) -> list:
+#     """extract_exclusion_criteria extracts a block of exclusion criteria from the string."""
+#     return extract_criteria(s, reMatchExclusions)
+
+def split_criteria(text: str):
+    # Find the split point
+    split_token = "Exclusion Criteria:"
+    if split_token not in text:
+        raise ValueError("Exclusion Criteria section not found in text")
+    
+    # Extract parts
+    inclusion_part, exclusion_part = text.split(split_token, 1)
+    
+    # Re-add the headers properly
+    inclusion_text = inclusion_part.strip()
+    exclusion_text = split_token + exclusion_part.strip()
+    
+    return inclusion_text, exclusion_text
 
 def list_source_files(input: str) -> list:
     file_list = []
@@ -58,8 +73,9 @@ def read_abstracts(input: str) -> list:
         print(f"Reading file: {file_name}")
         with open(file_name, 'r', encoding='utf-8') as file:
             content = file.read()
-            inclusion_criteria = extract_inclusion_criteria(content)
-            exclusion_criteria = extract_exclusion_criteria(content)
+            inclusion_criteria,exclusion_criteria = split_criteria(content)
+            # inclusion_criteria = extract_inclusion_criteria(content)
+            # exclusion_criteria = extract_exclusion_criteria(content)
 
             one_row = pd.DataFrame({'File Name': [file_name], 
                                     'Inclusion Criteria': inclusion_criteria, 

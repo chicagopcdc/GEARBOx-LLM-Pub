@@ -186,3 +186,8 @@ GEARBOx Ontology for LLM.xlsx
 output/
 
 .DS_Store
+
+src/Response_Model_EC_test.py
+src/Response_Model_IC_test.py
+
+playground.ipynb

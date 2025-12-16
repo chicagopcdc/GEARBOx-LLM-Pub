@@ -57,6 +57,20 @@ def filename_wo_extension(file_path):
 
 N_REPEATS = int(os.environ.get('N_REPEATS', 1))
 
+def extract_ordered_dict(data, suffix):
+    ordered_dict = {}
+    for item in data:
+        for key in item:
+            if key.endswith("_exist"):
+                var_name = key.replace("_exist", "")
+                ordered_dict[var_name] = {
+                    f"Exist_{suffix}": item.get(f"{var_name}_exist"),
+                    f"Value_{suffix}": item.get(var_name),
+                    f"Reasoning_{suffix}": item.get("reasoning")
+                }
+                break
+    return ordered_dict
+
 def multi_run(item, in_client):
     file_name, inclusion_criteria, exclusion_criteria = item
     file_name = filename_wo_extension(file_name)
@@ -66,20 +80,41 @@ def multi_run(item, in_client):
 
     OUTPUT_MULTIRUN_NAME= os.environ.get('OUTPUT_MULTIRUN_PATH')
 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
     for run in range(int(N_REPEATS)):
         print(f"Process run {run+1}: Inclusion Criteria")
         output_IC = exec(clean_text_ic, 'Inclusion', in_client)
         # Save output_IC_list to JSON
-        json_file_path = os.path.join(OUTPUT_MULTIRUN_NAME, f"{file_name}_IC_run_{run+1}.json")
+        json_file_path = os.path.join(OUTPUT_MULTIRUN_NAME, f"{file_name}_IC_run_{run+1}_{timestamp}.json")
         with open(json_file_path, "w") as json_file:
             json.dump(output_IC, json_file, indent=4)
         
         print(f"Process run {run+1}: Exclusion Criteria")
         output_EC = exec(clean_text_ec, 'Exclusion', in_client)
         # Save output_EC_list to JSON
-        json_file_path = os.path.join(OUTPUT_MULTIRUN_NAME, f"{file_name}_EC_run_{run+1}.json")
+        json_file_path = os.path.join(OUTPUT_MULTIRUN_NAME, f"{file_name}_EC_run_{run+1}_{timestamp}.json")
         with open(json_file_path, "w") as json_file:
             json.dump(output_EC, json_file, indent=4)
+        
+        ic_dict = extract_ordered_dict(output_IC, "IC")
+        ec_dict = extract_ordered_dict(output_EC, "EC")
+        all_vars = list(ic_dict.keys()) + [v for v in ec_dict.keys() if v not in ic_dict]
+        rows = []
+        for var in all_vars:
+            row = {
+                "Variable": var,
+                "Exist_IC": ic_dict.get(var, {}).get("Exist_IC"),
+                "Value_IC": ic_dict.get(var, {}).get("Value_IC"),
+                "Exist_EC": ec_dict.get(var, {}).get("Exist_EC"),
+                "Value_EC": ec_dict.get(var, {}).get("Value_EC"),
+                "Reasoning_IC": ic_dict.get(var, {}).get("Reasoning_IC"),
+                "Reasoning_EC": ec_dict.get(var, {}).get("Reasoning_EC")
+            }
+            rows.append(row)
+        final_df = pd.DataFrame(rows).set_index("Variable")
+        csv_file_path = os.path.join(OUTPUT_MULTIRUN_NAME, f"summary_{file_name}_run_{run+1}_{timestamp}.csv")
+        final_df.to_csv(csv_file_path)
 
 def summarize_runs(file_name, mode="IC"):
     all_runs = []

@@ -53,18 +53,25 @@ def generate_class_fields_and_enums(df, verb):
     fields = {}
     enum_classes = {}  # Dictionary to store generated enum classes as strings
     docstring = []
+    param_name_yesno_list = []
 
     for _, row in df.iterrows():
         param_name = row['Parameter Name']
         param_name_exist = f"{param_name}_exist"
-
+        
         # Determine the field type based on 'Type' and 'Enum' columns
-        if row['Type'] in ['integer', 'number']:
-            field_type = 'Optional[int]'
+        if param_name == "sex":
+            field_type = "List[str]"
+        elif row['Type'] in ['integer', 'number']:
+            # field_type = 'Optional[int]'
+            field_type = 'int'
         elif pd.notna(row['Enum']) and 'Yes' in row['Enum']:
-            field_type = 'Optional[YesNo]'  # Assuming YesOrNo is a defined type elsewhere
+            field_type = 'YesNo' 
+            # field_type = 'Optional[Literal["Yes","No"]]'
+            param_name_yesno_list.append(param_name)
         elif pd.notna(row['Enum']):
-            field_type = f"Optional[List[{param_name.capitalize()}]]"
+            # field_type = f"Optional[List[{param_name.capitalize()}]]"
+            field_type = f"List[{param_name.capitalize()}]"
             
             # Create an enum class for this parameter
             enum_items = [item.strip().strip('"') for item in row['Enum'].split(',')]
@@ -81,15 +88,17 @@ def generate_class_fields_and_enums(df, verb):
             enum_classes[param_name.capitalize()] = enum_class_str
             
         else:
-            field_type = 'Optional[str]'
+            field_type = 'str'
 
-        # 
         description = row['Description']
         example = row['Examples']
         if pd.notna(example) and example.strip():
-            example_str = f"    Extracted from the clinical trial eligibility document.\nExample: {example}"
+            # Add tab to each line after splitting
+            lines = example.strip().splitlines()
+            indented_example = "\n\t".join(lines)
+            example_str = f"    Extracted from the clinical trial eligibility document. Think step-by-step.\n\tCRITICAL EXTRACTION RULES: {indented_example}"
         else:
-            example_str = "    Extracted from the clinical trial eligibility document."
+            example_str = "    Extracted from the clinical trial eligibility document. Think step-by-step."
         docstring.append(f"    \'\'\'\n{example_str}\n    \'\'\'\n")
             
         parts = description.split('?')
@@ -99,8 +108,10 @@ def generate_class_fields_and_enums(df, verb):
             second_criteria = second_criteria + parts[2].replace('"', '\\"')
         
         fields[param_name_exist] = f"YesNo = Field(..., description=\"{first_yesno}\")"
-        fields[param_name] = f"{field_type} = Field(\n        None, \n        description=\"{second_criteria}\")"
-    
+        fields[param_name] = f"{field_type} = Field(\n        ..., \n        description=\"{second_criteria}\")" 
+        # default_value = "None" if "Optional" in field_type else "\"Yes\""
+        # fields[param_name] = f"{field_type} = Field(\n        {default_value}, \n        description=\"{second_criteria}\")"
+
     enum_items = ["Yes","No"]
     enum_class_str = f"class YesNo(Enum):\n"
     for item in enum_items:
@@ -108,7 +119,7 @@ def generate_class_fields_and_enums(df, verb):
         enum_class_str += f"    {enum_name} = \"{item}\"\n"
     enum_classes["YesNo"] = enum_class_str
 
-    return fields, enum_classes, docstring
+    return fields, enum_classes, docstring, param_name_yesno_list
 
 
 # Helper function to get dictionary chunks of size 2
@@ -120,8 +131,8 @@ def dict_chunk(dictionary:dict, size:int = 2):
 # Function to generate the response model class
 IMPORT_MODULE = """
 from enum import Enum
-from pydantic import BaseModel, Field, model_validator, ValidationInfo
-from typing import Optional, List, Tuple
+from pydantic import BaseModel, Field, model_validator, ValidationInfo, field_validator
+from typing import Optional, List, Tuple, Literal
 import re
 """
 
@@ -150,15 +161,13 @@ class Fact(BaseModel):
 
 """
 
-CONDITION_VALIDATOR = """
+CONDITION_VALIDATOR_GENERAL = """
     @model_validator(mode="after")
     def skip_if_not_exist(self, info: ValidationInfo) -> "Entity{i}":
         if getattr(self, "{exist_field}") == YesNo.NO:
-            if getattr(self, "{value_field}") is not None:
-                raise ValueError("{value_field} must be None if {exist_field} is 'NO'")
             setattr(self, "{value_field}", None)
-            self.answer_facts = []
         return self
+
 """
 
 SOURCE_VALIDATOR = """  
@@ -166,13 +175,19 @@ SOURCE_VALIDATOR = """
     def validate_sources(self) -> "Entity{i}":
         self.answer_facts = [fact for fact in self.answer_facts if len(fact.substring_quote) > 0]
         return self
-
 """
+# FIELD_VALIDATOR = """
+#     @field_validator("{param_name}")
+#     def validate_{param_name}(cls, v):
+#         if v not in ["Yes", "No"]:
+#             raise ValueError("Answer must be 'Yes' or 'No'")
+#         return v
+# """
 
 def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
 # Generate class fields from the DataFrame
-    class_fields_ic, enum_classes, docstring = generate_class_fields_and_enums(gearbox_df, "included")
-    class_fields_ec, _, _ = generate_class_fields_and_enums(gearbox_df, "excluded")
+    class_fields_ic, enum_classes, docstring, param_name_yesno_list = generate_class_fields_and_enums(gearbox_df, "included")
+    class_fields_ec, _, _, _ = generate_class_fields_and_enums(gearbox_df, "excluded")
 
     class_definition = IMPORT_MODULE
     class_definition += FACT
@@ -189,13 +204,11 @@ def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
         for field_name, field_definition in chunk:
             class_definition_ic += f"    {field_name}: {field_definition}\n"
             name_list.append(field_name)
-        class_definition_ic += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"
-        class_definition_ic += CONDITION_VALIDATOR.format(
-            i=i,
-            exist_field=name_list[0],
-            value_field=name_list[1],
-        )
-        class_definition_ic += SOURCE_VALIDATOR.format(i=i)
+        class_definition_ic += CONDITION_VALIDATOR_GENERAL.format(i=i, exist_field=name_list[0], value_field=name_list[1])
+
+        # class_definition_ic += f"    reasoning: str = Field(..., description=\"Chain-of-thoughts to get the answers. limit in two sentences.\")\n"
+        # class_definition_ic += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"
+        # class_definition_ic += SOURCE_VALIDATOR.format(i=i)
 
     # Generating the ec class as a string
     class_definition_ec = class_definition
@@ -206,13 +219,11 @@ def generate_entity_class(gearbox_df:pd.DataFrame, chunk_size:int=2) -> str:
         for field_name, field_definition in chunk:
             class_definition_ec += f"    {field_name}: {field_definition}\n"
             name_list.append(field_name)
-        class_definition_ec += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"
-        class_definition_ec += CONDITION_VALIDATOR.format(
-            i=i,
-            exist_field=name_list[0],
-            value_field=name_list[1],
-        )        
-        class_definition_ec += SOURCE_VALIDATOR.format(i=i)
+        class_definition_ec += CONDITION_VALIDATOR_GENERAL.format(i=i, exist_field=name_list[0], value_field=name_list[1])
+
+        # class_definition_ec += f"    reasoning: str = Field(..., description=\"Chain-of-thoughts to get the answers. limit in two sentences.\")\n"
+        # class_definition_ec += f"    answer_facts: List[Fact] = Field(..., description=\"Exact fact quotes from the note supporting the answer.\")\n"  
+        # class_definition_ec += SOURCE_VALIDATOR.format(i=i)
         
     return class_definition_ic, class_definition_ec
 

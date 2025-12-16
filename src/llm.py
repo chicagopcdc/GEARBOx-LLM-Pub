@@ -37,8 +37,6 @@ def initiate_llm():
     in_client = partial(
         client.chat.completions.create,
         model=model,
-        temperature=0,
-        max_retries=2  # Retries in case of API issues
     )
 
     # print(in_client)
@@ -53,6 +51,7 @@ class GearboxLLM:
         return self.client(
             response_model=self.response_model,
             temperature=0,
+            max_retries=3,
             messages=[
                 {
                     "role": "system",
@@ -60,14 +59,17 @@ class GearboxLLM:
                 },
                 {
                     "role": "user",
-                    "content": f"Extract information from the clinical trial eligibility document ({type} criteria). Extract only explicitly mentioned entities. Do not infer or assume any information beyond what is explicitly stated in the document. ",
+                    "content": f'''Your task is to extract structured fields from the clinical trial eligibility criteria using the following rules and schema defined in the pydantic class.
+                    Please follow the instructions in the docstring of the pydantic class for additional details.
+                    Extract only explicitly mentioned entities. Do not infer or assume any information beyond what is explicitly stated in the document. 
+                    ''',
                 },
                 {
                     "role": "user",
                     "content": f"Here is the {type} Criteria section {criteria}",
                 },
             ],
-            validation_context={"text_chunk": criteria},
+            # validation_context={"text_chunk": criteria},
         ) 
 
     def output(self, criteria: str, type: str):

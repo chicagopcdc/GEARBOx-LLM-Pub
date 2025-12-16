@@ -2,17 +2,37 @@ import pandas as pd
 
 import os
 from llm import GearboxLLM
-from itertools import islice
-from pydantic import BaseModel, Field
-from enum import Enum
-from typing import TypeVar, Type, Optional, List
-from collections import Counter, defaultdict
+from tqdm import tqdm
+import time
 
+
+# def import_all_response_models(module_path: str, prefix="Entity") -> list:
+#     import importlib.util
+#     import os
+#     import sys
+
+#     module_name = os.path.splitext(os.path.basename(module_path))[0]
+#     spec = importlib.util.spec_from_file_location(module_name, module_path)
+#     module = importlib.util.module_from_spec(spec)
+#     sys.modules[module_name] = module
+#     spec.loader.exec_module(module)
+
+#     entity_models = []
+#     i = 0
+#     while True:
+#         class_name = f"{prefix}{i}"
+#         if hasattr(module, class_name):
+#             entity_models.append(getattr(module, class_name))
+#             i += 1
+#         else:
+#             break
+#     return entity_models
 
 def import_all_response_models(module_path: str, prefix="Entity") -> list:
     import importlib.util
     import os
     import sys
+    import re
 
     module_name = os.path.splitext(os.path.basename(module_path))[0]
     spec = importlib.util.spec_from_file_location(module_name, module_path)
@@ -21,14 +41,19 @@ def import_all_response_models(module_path: str, prefix="Entity") -> list:
     spec.loader.exec_module(module)
 
     entity_models = []
-    i = 0
-    while True:
-        class_name = f"{prefix}{i}"
-        if hasattr(module, class_name):
-            entity_models.append(getattr(module, class_name))
-            i += 1
-        else:
-            break
+
+    # Find all class names like Entity0, Entity1, Entity42, etc.
+    pattern = re.compile(f"{prefix}(\\d+)$")
+    matching_classes = [
+        (int(match.group(1)), getattr(module, attr))
+        for attr in dir(module)
+        if (match := pattern.match(attr)) and hasattr(module, attr)
+    ]
+
+    # Sort by numeric index to preserve order
+    for _, cls in sorted(matching_classes, key=lambda x: x[0]):
+        entity_models.append(cls)
+
     return entity_models
 
 def exec(criteria_text: str, 
@@ -48,14 +73,15 @@ def exec(criteria_text: str,
     
     responses = []
 
-    for i, Model in enumerate(EntityModel):
+    for i, Model in enumerate(tqdm(EntityModel, desc="Running Entity Models")):
         try:
             classifier = GearboxLLM(response_model=Model, client=in_client)
             output = classifier.output(criteria=criteria_text, type=criteria_type)
             # print(f"[Success] Processed Entity{i} : {output}")
             responses.append(output)
+            time.sleep(1)
         except Exception as e:
             print(f"[Error] Failed to process Entity{i} : {e}")
             responses.append(Model())
-
+            time.sleep(1)
     return responses
